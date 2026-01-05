@@ -1,0 +1,96 @@
+{
+    auto_https off
+    admin off
+    
+    servers {
+        max_header_size 16KB
+    }
+}
+
+: 80 {
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+
+    request_body {
+        max_size 100MB
+    }
+
+    # Account service
+    @accounts path /_accounts /_accounts/*
+    handle @accounts {
+        uri strip_prefix /_accounts
+        reverse_proxy {$ACCOUNT_HOST}:3000
+    }
+
+    # Transactor service - WebSocket
+    @transactor path /_transactor /_transactor/*
+    handle @transactor {
+        uri strip_prefix /_transactor
+        reverse_proxy {$TRANSACTOR_HOST}:3333
+    }
+
+    # Collaborator service - WebSocket
+    @collaborator path /_collaborator /_collaborator/*
+    handle @collaborator {
+        uri strip_prefix /_collaborator
+        reverse_proxy {$COLLABORATOR_HOST}: 3078
+    }
+
+    # Rekoni service
+    @rekoni path /_rekoni /_rekoni/*
+    handle @rekoni {
+        uri strip_prefix /_rekoni
+        reverse_proxy {$REKONI_HOST}:4004
+    }
+
+    # Stats service
+    @stats path /_stats /_stats/*
+    handle @stats {
+        uri strip_prefix /_stats
+        reverse_proxy {$STATS_HOST}:4900
+    }
+
+    # Optional services (uncomment later)
+    
+    # @print path /_print /_print/*
+    # handle @print {
+    #     uri strip_prefix /_print
+    #     reverse_proxy {$PRINT_HOST}:4005
+    # }
+
+    # @love path /_love /_love/*
+    # handle @love {
+    #     uri strip_prefix /_love
+    #     reverse_proxy {$LOVE_HOST}:8096
+    # }
+
+    # @export path /_export /_export/*
+    # handle @export {
+    #     uri strip_prefix /_export
+    #     reverse_proxy {$EXPORT_HOST}:4009
+    # }
+
+    # @calendar path /_calendar /_calendar/*
+    # handle @calendar {
+    #     uri strip_prefix /_calendar
+    #     reverse_proxy {$CALENDAR_HOST}:8095
+    # }
+
+    # @gmail path /_gmail /_gmail/*
+    # handle @gmail {
+    #     uri strip_prefix /_gmail
+    #     reverse_proxy {$GMAIL_HOST}:8093
+    # }
+
+    # Files (MinIO)
+    @files path /files /files/*
+    handle @files {
+        reverse_proxy {$MINIO_HOST}:9000
+    }
+
+    # Frontend - Must be last (catch-all)
+    reverse_proxy {$FRONT_HOST}:8080
+}
