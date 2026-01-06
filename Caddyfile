@@ -4,10 +4,11 @@
     
     servers {
         max_header_size 16KB
+        trusted_proxies static private_ranges
     }
 }
 
-: 80 {
+:80 {
     log {
         output stdout
         format console
@@ -36,7 +37,7 @@
     @collaborator path /_collaborator /_collaborator/*
     handle @collaborator {
         uri strip_prefix /_collaborator
-        reverse_proxy {$COLLABORATOR_HOST}: 3078
+        reverse_proxy {$COLLABORATOR_HOST}:3078
     }
 
     # Rekoni service
